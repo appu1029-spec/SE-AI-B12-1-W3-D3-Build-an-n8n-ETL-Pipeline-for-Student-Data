@@ -1,0 +1,271 @@
+{
+  "name": "Clean Data",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        -48
+      ],
+      "id": "4f1a1340-c9ce-472f-99f8-eb2cc1f52f31",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "fileSelector": "C:\\D\\AI Project\\Social Eagle\\SEArokiaProjects\\W3\\D3\\students_messy.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -224,
+        -48
+      ],
+      "id": "3227a2b5-58f5-4861-97ff-849818c5ed81",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        -48
+      ],
+      "id": "dbae7eff-6538-4124-bac2-0a3b3555609a",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const trim = v => (v ?? '').toString().trim();\nconst titleCase = s => trim(s).toLowerCase().replace(/\\b\\w/g, c => c.toUpperCase());\n\nconst courseMap = {\n  'python': 'Python',\n  'ml': 'Machine Learning',\n  'machine learning': 'Machine Learning',\n  'data science': 'Data Science'\n};\nconst course = trim($json.Course).toLowerCase();\n\n// convert DD-MM-YYYY to YYYY-MM-DD\nconst [d, m, y] = trim($json.Enrolled_Date).split('-');\nconst date = (d && m && y) ? `${y}-${m}-${d}` : '';\n\nreturn {\n  json: {\n    Student_ID: trim($json.Student_ID).toUpperCase(),\n    Name: titleCase($json.Name),\n    Email: trim($json.Email).toLowerCase(),\n    Phone: trim($json.Phone),\n    Course: courseMap[course] || titleCase(course),\n    Status: trim($json.Status).toLowerCase(),\n    City: titleCase($json.City),\n    Enrolled_Date: date\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        -48
+      ],
+      "id": "6e364917-93d3-43aa-ae80-5b21a8f54eb6",
+      "name": "Clean Data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d9b55ca5-b5be-4e9c-b727-2936d3f1b94c",
+              "leftValue": "={{ $json.Email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": "={{ false }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        -48
+      ],
+      "id": "d9319ae4-02da-4b83-8ff7-784956a9277b",
+      "name": "Drop Missing Email"
+    },
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "Email",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -48
+      ],
+      "id": "1e7247e5-dd90-489f-bf3d-39cd25424ff3",
+      "name": "Remove Duplicates"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9609e8bd-8353-48b4-bbaa-ce5bc0c9a805",
+              "leftValue": "={{ $json.Status }}",
+              "rightValue": "enrolled",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        -48
+      ],
+      "id": "a33b1687-e953-472f-bb21-0876744b539d",
+      "name": "Keep Enrolled Only"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        -48
+      ],
+      "id": "c8ec91a8-b359-4a04-b253-ef1387364f86",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "C:\\D\\AI Project\\Social Eagle\\SEArokiaProjects\\W3\\D3\\students_clean.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1344,
+        -48
+      ],
+      "id": "ec959cdd-23c8-45ef-b4be-28ab595a3800",
+      "name": "Write Clean CSV"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Clean Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Data": {
+      "main": [
+        [
+          {
+            "node": "Drop Missing Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drop Missing Email": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Keep Enrolled Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep Enrolled Only": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Write Clean CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "94619632-07d6-4a1c-b018-981cf9751d19",
+  "meta": {
+    "instanceId": "3e77ecf388112cfc6f29d590700bca47ad6cfce3f88dac5b3fbd5812281d21ba"
+  },
+  "nodeGroups": [],
+  "id": "9tsxvJGvBJXeyBLy",
+  "tags": []
+}
